@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.concurrent.Flow;
+
 
 /**
  * @author I-Chung, Wang
@@ -38,5 +38,11 @@ public class VendorController {
     @PostMapping("/api/v1/vendors")
     Mono<Void> create(@RequestBody Publisher<Vendor> vendorStream) {
         return vendorRepository.saveAll(vendorStream).then();
+    }
+
+    @PutMapping("/api/v1/vendors/{id}")
+    Mono<Vendor> update(@PathVariable String id, @RequestBody Vendor vendor) {
+        vendor.setId(id);
+        return vendorRepository.save(vendor);
     }
 }
