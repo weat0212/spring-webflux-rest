@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
  */
 
 @RestController
+@RequestMapping("/api/v1/vendors")
 public class VendorController {
 
     private final VendorRepository vendorRepository;
@@ -24,25 +25,48 @@ public class VendorController {
         this.vendorRepository = vendorRepository;
     }
 
-    @GetMapping("/api/v1/vendors")
+    @GetMapping
     Flux<Vendor> list() {
         return vendorRepository.findAll();
     }
 
-    @GetMapping("/api/v1/vendors/{id}")
+    @GetMapping("/{id}")
     Mono<Vendor> getById(@PathVariable String id) {
         return vendorRepository.findById(id);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/api/v1/vendors")
+    @PostMapping
     Mono<Void> create(@RequestBody Publisher<Vendor> vendorStream) {
         return vendorRepository.saveAll(vendorStream).then();
     }
 
-    @PutMapping("/api/v1/vendors/{id}")
+    @PutMapping("/{id}")
     Mono<Vendor> update(@PathVariable String id, @RequestBody Vendor vendor) {
         vendor.setId(id);
         return vendorRepository.save(vendor);
+    }
+
+    @PatchMapping("/{id}")
+    Mono<Vendor> patch(@PathVariable String id, @RequestBody Vendor vendor) {
+
+        Vendor vendorOrigin = vendorRepository.findById(id).block();
+        Boolean changed = false;
+
+        if (!vendorOrigin.getFirstName().equals(vendor.getFirstName())) {
+            vendorOrigin.setFirstName(vendor.getFirstName());
+            changed = true;
+        }
+
+        if (!vendorOrigin.getLastName().equals(vendor.getLastName())) {
+            vendorOrigin.setLastName(vendor.getLastName());
+            changed = true;
+        }
+
+        if (changed) {
+            return vendorRepository.save(vendorOrigin);
+        } else {
+            return Mono.just(vendorOrigin);
+        }
     }
 }
